@@ -1,0 +1,4 @@
+pandas
+openpyxl
+tweepy
+MLB-StatsAPI
