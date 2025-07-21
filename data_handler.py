@@ -5,6 +5,7 @@ import pandas as pd
 import statsapi
 import re
 import os
+import mlb_monitor
 
 # Define the filename for the roster
 ROSTER_FILENAME = "dingers.xlsx"
@@ -77,7 +78,10 @@ def load_and_normalize_roster():
                     'name': player_full_name,
                     'fantasy_team': fantasy_team
                 }
-                print(f"  + Found and mapped '{player_full_name}' (ID: {player_id})")
+                
+                bomb_count = mlb_monitor.get_stats_since_break(player_id)
+
+                print(f"  + Found and mapped '{player_full_name}' (ID: {player_id}) - (bombs since break: {bomb_count}))")
 
             except Exception as e:
                 print(f"  - ERROR: An unexpected error occurred while processing '{player_name_raw}'.")
