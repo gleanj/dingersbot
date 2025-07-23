@@ -143,8 +143,6 @@
 
             recentLogs.forEach(log => {
                 const row = document.createElement('tr');
-                // --- FIX ---
-                // new Date() can parse both '2025-07-23' and the full ISO string correctly.
                 const date = new Date(log.Timestamp).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
                 row.innerHTML = `
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${date}</td>
@@ -168,10 +166,7 @@
             const sortedLog = [...homerunLog].sort((a, b) => new Date(a.Timestamp) - new Date(b.Timestamp));
 
             sortedLog.forEach(log => {
-                // --- FIX ---
-                // Create a Date object directly, which works for both timestamp formats.
                 const dateObj = new Date(log.Timestamp);
-                // Normalize to a YYYY-MM-DD string to group all homeruns on the same day.
                 const date = dateObj.toISOString().split('T')[0];
                 
                 if (!dataByDate[date]) {
@@ -182,12 +177,25 @@
             });
 
             const labels = Object.keys(dataByDate).sort();
+            
+            // --- FIX IS HERE ---
             const datasets = teams.map((team, index) => {
-                let cumulativeTotal = 0;
+                // Find the team's total score from the scoreboard data
+                const teamData = scoreboard.find(t => t.FantasyTeamName === team);
+                const totalScore = teamData ? teamData.HomerunCount : 0;
+
+                // Calculate how many HRs for this team are in the log
+                const loggedHrCount = sortedLog.filter(log => log.FantasyTeamName === team).length;
+                
+                // The "starting score" is the total minus what's in the log.
+                // This accounts for homeruns hit before the log's first date.
+                let cumulativeTotal = totalScore - loggedHrCount;
+
                 const data = labels.map(label => {
                     cumulativeTotal += (dataByDate[label][team] || 0);
                     return cumulativeTotal;
                 });
+
                 return {
                     label: team,
                     data: data,
