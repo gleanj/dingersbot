@@ -5,6 +5,31 @@ import statsapi
 import logging
 import hashlib
 from datetime import datetime
+import requests
+
+
+def get_stats_since_break(person_id, group="hitting"):
+    url = f"https://statsapi.mlb.com/api/v1/people/{person_id}/stats"
+    params = {
+        "stats": "gameLog",
+        "group": group,
+        "startDate": "2025-07-16"
+    }
+    response = requests.get(url, params=params)
+    response.raise_for_status()
+    bomb_data = response.json()
+    bomb_count = 0
+    for game in bomb_data['stats'][0]['splits']:
+        hr = game['stat'].get('homeRuns', 0)
+        bomb_count+= hr
+    return bomb_count
+
+def get_player(player_id):
+
+    playerStats = statsapi.player_stat_data(player_id, group="[hitting]", type="season", sportId=1, season=2025)
+
+    return playerStats
+    
 
 def get_active_game_pks():
     """
